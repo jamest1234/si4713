@@ -6,8 +6,13 @@ import (
 	"time"
 
 	"github.com/d2r2/go-i2c"
+	"github.com/d2r2/go-logger"
 	"github.com/warthog618/go-gpiocdev"
 )
+
+func init() {
+	logger.ChangePackageLogLevel("i2c", logger.InfoLevel)
+}
 
 type Si4713 struct {
 	resetLine *gpiocdev.Line
