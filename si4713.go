@@ -2,6 +2,7 @@ package si4713
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/d2r2/go-i2c"
@@ -107,6 +108,126 @@ func (s *Si4713) SetFrequency(freq uint16) {
 // Power must be from 88 to 115 dBuV
 func (s *Si4713) SetPower(power uint8) {
 	s.i2c.WriteBytes([]byte{CmdSetTxPower, 0, 0, power, 0})
+}
+
+func (s *Si4713) TuneMeasure(freq uint16) {
+	if freq%5 != 0 {
+		freq -= freq % 5
+	}
+
+	s.i2c.WriteBytes([]byte{CmdTxTuneMeasure, 0, byte(freq >> 8), byte(freq & 0xFF), 0})
+
+	for s.getStatus() != 0x81 {
+		time.Sleep(time.Millisecond * 10)
+	}
+}
+
+type TuneStatus struct {
+	Frequency        uint16
+	Power            uint8 // dBuV
+	AntennaCapacitor uint8
+	NoiseLevel       uint8
+}
+
+func (s *Si4713) TuneStatus() TuneStatus {
+	s.i2c.WriteBytes([]byte{CmdTxTuneStatus, 1})
+
+	response := make([]byte, 8)
+	s.i2c.ReadBytes(response)
+
+	return TuneStatus{
+		Frequency:        (uint16(response[2]) << 8) | uint16(response[3]),
+		Power:            response[5],
+		AntennaCapacitor: response[6],
+		NoiseLevel:       response[7],
+	}
+}
+
+type ASQStatus struct {
+	ASQ     uint8
+	InLevel uint8
+}
+
+func (s *Si4713) ReadASQ() ASQStatus {
+	s.i2c.WriteBytes([]byte{CmdTxASQStatus, 1})
+
+	response := make([]byte, 5)
+	s.i2c.ReadBytes(response)
+
+	return ASQStatus{
+		ASQ:     response[1],
+		InLevel: response[4],
+	}
+}
+
+func (s *Si4713) BeginRDS(programID uint16) {
+	s.setProperty(PropTxAudioDeviation, 6625)
+	s.setProperty(PropTxRDSDeviation, 200)
+	s.setProperty(PropTxRDSInterruptSource, 1)
+	s.setProperty(PropTxRDSPI, programID)
+	s.setProperty(PropTxRDSPsMix, 3)
+	s.setProperty(PropTxRDSPsMisc, 0x1008)
+	s.setProperty(PropTxRDSPsRepeatCount, 3)
+	s.setProperty(PropTxRDSMessageCount, 1)
+	s.setProperty(PropTxRDSPsAF, 0xE0E0)
+	s.setProperty(PropTxRDSFIFOSize, 0)
+	s.setProperty(PropTxComponentEnable, 7)
+}
+
+func (s *Si4713) SetRDSPS(str string) {
+	if len(str) > 8 {
+		str = str[:8]
+	} else if len(str) < 8 {
+		str += strings.Repeat(" ", 8-len(str))
+	}
+
+	buf := make([]byte, 6)
+	buf[0] = CmdTxRDSPs
+
+	copy(buf[2:], str[:4])
+	s.i2c.WriteBytes(buf)
+
+	buf[1] = 1
+	copy(buf[2:], str[4:])
+	s.i2c.WriteBytes(buf)
+}
+
+func (s *Si4713) SetRDSText(str string) {
+	if len(str) > 64 {
+		str = str[:64]
+	}
+
+	buf := make([]byte, 8)
+
+	buf[0] = CmdTxRDSBuff
+	buf[1] = 0x06
+	buf[2] = 0x20
+
+	i := uint8(0)
+	for len(str) > 0 {
+		for j := 4; j < 8; j++ {
+			buf[j] = ' '
+		}
+
+		n := copy(buf[4:], str[:min(4, len(str))])
+		str = str[n:]
+
+		buf[3] = i
+		s.i2c.WriteBytes(buf)
+
+		if i == 0 {
+			buf[1] = 0x04
+		}
+		i++
+	}
+}
+
+func (s *Si4713) SetGPIOCtrl(x uint8) {
+	s.i2c.WriteBytes([]byte{CmdGPOCtl, x})
+}
+
+func (s *Si4713) SetGPIO(x uint8) {
+	s.i2c.WriteBytes([]byte{CmdGPOSet, x})
 }
 
 func (s *Si4713) Reset() {

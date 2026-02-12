@@ -19,7 +19,11 @@ func TestXxx(t *testing.T) {
 
 	tx.SetFrequency(9930)
 
-	time.Sleep(time.Second * 2)
+	tx.BeginRDS(0x3333)
+	tx.SetRDSPS("Test")
+	tx.SetRDSText("Testing testing testing testing 12345")
+
+	time.Sleep(time.Second * 10)
 
 	t.Log(tx.powerDown())
 }
