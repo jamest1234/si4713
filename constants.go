@@ -3,7 +3,6 @@ package si4713
 const (
 	CmdPowerUp       = 0x1
 	CmdGetRev        = 0x10
-	CmdPowerDown     = 0x11
 	CmdSetProperty   = 0x12
 	CmdGetIntStatus  = 0x14
 	CmdSetTxFreq     = 0x30
