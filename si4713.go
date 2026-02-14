@@ -28,8 +28,14 @@ func New(i2cDevice *i2c.I2C, resetLine *gpiocdev.Line) (*Si4713, error) {
 	return si4713, si4713.Reset()
 }
 
+func (s *Si4713) sendCommand(buf []byte) (int, error) {
+	n, err := s.i2c.WriteBytes(buf)
+	time.Sleep(time.Millisecond * 50)
+	return n, err
+}
+
 func (s *Si4713) setProperty(property, value uint16) error {
-	_, err := s.i2c.WriteBytes([]byte{
+	_, err := s.sendCommand([]byte{
 		CmdSetProperty,
 		0,
 		byte(property >> 8),
@@ -42,7 +48,7 @@ func (s *Si4713) setProperty(property, value uint16) error {
 }
 
 func (s *Si4713) getStatus() (uint8, error) {
-	_, err := s.i2c.WriteBytes([]byte{CmdGetIntStatus})
+	_, err := s.sendCommand([]byte{CmdGetIntStatus})
 	if err != nil {
 		return 0, err
 	}
@@ -53,7 +59,7 @@ func (s *Si4713) getStatus() (uint8, error) {
 }
 
 func (s *Si4713) getRev() (uint8, error) {
-	_, err := s.i2c.WriteBytes([]byte{CmdGetRev, 0})
+	_, err := s.sendCommand([]byte{CmdGetRev, 0})
 	if err != nil {
 		return 0, err
 	}
@@ -64,7 +70,7 @@ func (s *Si4713) getRev() (uint8, error) {
 }
 
 func (s *Si4713) PowerUp() error {
-	_, err := s.i2c.WriteBytes([]byte{CmdPowerUp, 0x12, 0x50})
+	_, err := s.sendCommand([]byte{CmdPowerUp, 0x12, 0x50})
 	if err != nil {
 		return err
 	}
@@ -105,7 +111,7 @@ func (s *Si4713) PowerUp() error {
 
 // freq: Frequency in MHz * 100
 func (s *Si4713) SetFrequency(freq uint16) error {
-	_, err := s.i2c.WriteBytes([]byte{CmdSetTxFreq, 0, byte(freq >> 8), byte(freq & 0xFF)})
+	_, err := s.sendCommand([]byte{CmdSetTxFreq, 0, byte(freq >> 8), byte(freq & 0xFF)})
 	if err != nil {
 		return err
 	}
@@ -134,7 +140,7 @@ func (s *Si4713) SetFrequency(freq uint16) error {
 
 // Power must be from 88 to 115 dBuV
 func (s *Si4713) SetPower(power uint8) error {
-	_, err := s.i2c.WriteBytes([]byte{CmdSetTxPower, 0, 0, power, 0})
+	_, err := s.sendCommand([]byte{CmdSetTxPower, 0, 0, power, 0})
 	return err
 }
 
@@ -143,7 +149,7 @@ func (s *Si4713) TuneMeasure(freq uint16) error {
 		freq -= freq % 5
 	}
 
-	_, err := s.i2c.WriteBytes([]byte{CmdTxTuneMeasure, 0, byte(freq >> 8), byte(freq & 0xFF), 0})
+	_, err := s.sendCommand([]byte{CmdTxTuneMeasure, 0, byte(freq >> 8), byte(freq & 0xFF), 0})
 	if err != nil {
 		return err
 	}
@@ -174,7 +180,7 @@ type TuneStatus struct {
 }
 
 func (s *Si4713) TuneStatus() (TuneStatus, error) {
-	_, err := s.i2c.WriteBytes([]byte{CmdTxTuneStatus, 1})
+	_, err := s.sendCommand([]byte{CmdTxTuneStatus, 1})
 	if err != nil {
 		return TuneStatus{}, err
 	}
@@ -196,7 +202,7 @@ type ASQStatus struct {
 }
 
 func (s *Si4713) ReadASQ() (ASQStatus, error) {
-	_, err := s.i2c.WriteBytes([]byte{CmdTxASQStatus, 1})
+	_, err := s.sendCommand([]byte{CmdTxASQStatus, 1})
 	if err != nil {
 		return ASQStatus{}, err
 	}
@@ -275,14 +281,14 @@ func (s *Si4713) SetRDSPS(str string) error {
 	buf[0] = CmdTxRDSPs
 
 	copy(buf[2:], str[:4])
-	_, err := s.i2c.WriteBytes(buf)
+	_, err := s.sendCommand(buf)
 	if err != nil {
 		return err
 	}
 
 	buf[1] = 1
 	copy(buf[2:], str[4:])
-	_, err = s.i2c.WriteBytes(buf)
+	_, err = s.sendCommand(buf)
 	return err
 }
 
@@ -307,7 +313,7 @@ func (s *Si4713) SetRDSText(str string) error {
 		str = str[n:]
 
 		buf[3] = i
-		_, err := s.i2c.WriteBytes(buf)
+		_, err := s.sendCommand(buf)
 		if err != nil {
 			return err
 		}
@@ -322,12 +328,12 @@ func (s *Si4713) SetRDSText(str string) error {
 }
 
 func (s *Si4713) SetGPIOCtrl(x uint8) error {
-	_, err := s.i2c.WriteBytes([]byte{CmdGPOCtl, x})
+	_, err := s.sendCommand([]byte{CmdGPOCtl, x})
 	return err
 }
 
 func (s *Si4713) SetGPIO(x uint8) error {
-	_, err := s.i2c.WriteBytes([]byte{CmdGPOSet, x})
+	_, err := s.sendCommand([]byte{CmdGPOSet, x})
 	return err
 }
 
