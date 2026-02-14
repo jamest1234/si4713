@@ -240,7 +240,30 @@ func (s *Si4713) BeginRDS(programID uint16) error {
 		return err
 	}
 
-	err = s.setProperty(PropTxRDSPsMisc, 0x1008)
+	/*
+		My Si4713 does not seem to match the programming guide
+		Page 51 Property 0x2C03 TX_RDS_PS_MISC https://cdn.sparkfun.com/assets/6/2/4/7/4/51688066ce395fe358000001.pdf
+		Bits 12 to 15 are in reversed order
+
+		15: Mono/Stereo
+		14: Artificial Head
+		13: Compressed
+		12: Static/Dynamic PTY
+		11: FORCEB
+		10: Traffic Program
+		 9: PTY
+		 8: PTY
+		 7: PTY
+		 6: PTY
+		 5: PTY
+		 4: Traffic Announcement
+		 3: Speech/Music
+		 2: 0
+		 1: 0
+		 0: 0
+	*/
+
+	err = s.setProperty(PropTxRDSPsMisc, 0b1000000000001000)
 	if err != nil {
 		return err
 	}
