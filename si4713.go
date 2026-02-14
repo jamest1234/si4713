@@ -14,7 +14,7 @@ func init() {
 	logger.ChangePackageLogLevel("i2c", logger.InfoLevel)
 }
 
-const pauseTime = time.Millisecond * 50
+const pauseTime = time.Millisecond * 10
 
 type Si4713 struct {
 	i2c       *i2c.I2C
@@ -279,16 +279,15 @@ func (s *Si4713) SetRDSPSName(str string) error {
 	buf[0] = CmdTxRDSPs
 
 	copy(buf[2:], str[:4])
-	_, err := s.i2c.WriteBytes(buf)
+	_, err := s.sendCommand(buf)
 	if err != nil {
 		return err
 	}
 
 	buf[1] = 1
 	copy(buf[2:], str[4:])
-	_, err = s.i2c.WriteBytes(buf)
+	_, err = s.sendCommand(buf)
 
-	time.Sleep(pauseTime)
 	return err
 }
 
@@ -313,7 +312,7 @@ func (s *Si4713) SetRDSRadioText(str string) error {
 		str = str[n:]
 
 		buf[3] = i
-		_, err := s.i2c.WriteBytes(buf)
+		_, err := s.sendCommand(buf)
 		if err != nil {
 			return err
 		}
@@ -324,7 +323,6 @@ func (s *Si4713) SetRDSRadioText(str string) error {
 		i++
 	}
 
-	time.Sleep(pauseTime)
 	return nil
 }
 
