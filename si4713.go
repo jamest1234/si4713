@@ -14,6 +14,8 @@ func init() {
 	logger.ChangePackageLogLevel("i2c", logger.InfoLevel)
 }
 
+const pauseTime = time.Millisecond * 50
+
 type Si4713 struct {
 	i2c       *i2c.I2C
 	resetLine *gpiocdev.Line
@@ -30,7 +32,7 @@ func New(i2cDevice *i2c.I2C, resetLine *gpiocdev.Line) (*Si4713, error) {
 
 func (s *Si4713) sendCommand(buf []byte) (int, error) {
 	n, err := s.i2c.WriteBytes(buf)
-	time.Sleep(time.Millisecond * 50)
+	time.Sleep(pauseTime)
 	return n, err
 }
 
@@ -116,8 +118,6 @@ func (s *Si4713) SetFrequency(freq uint16) error {
 		return err
 	}
 
-	time.Sleep(time.Millisecond * 50)
-
 	for range 10 {
 		status, err := s.getStatus()
 		if err != nil {
@@ -153,8 +153,6 @@ func (s *Si4713) TuneMeasure(freq uint16) error {
 	if err != nil {
 		return err
 	}
-
-	time.Sleep(time.Millisecond * 50)
 
 	for {
 		status, err := s.getStatus()
@@ -270,7 +268,7 @@ func (s *Si4713) BeginRDS(programID uint16) error {
 	return s.setProperty(PropTxComponentEnable, 7)
 }
 
-func (s *Si4713) SetRDSPS(str string) error {
+func (s *Si4713) SetRDSPSName(str string) error {
 	if len(str) > 8 {
 		str = str[:8]
 	} else if len(str) < 8 {
@@ -281,18 +279,20 @@ func (s *Si4713) SetRDSPS(str string) error {
 	buf[0] = CmdTxRDSPs
 
 	copy(buf[2:], str[:4])
-	_, err := s.sendCommand(buf)
+	_, err := s.i2c.WriteBytes(buf)
 	if err != nil {
 		return err
 	}
 
 	buf[1] = 1
 	copy(buf[2:], str[4:])
-	_, err = s.sendCommand(buf)
+	_, err = s.i2c.WriteBytes(buf)
+
+	time.Sleep(pauseTime)
 	return err
 }
 
-func (s *Si4713) SetRDSText(str string) error {
+func (s *Si4713) SetRDSRadioText(str string) error {
 	if len(str) > 64 {
 		str = str[:64]
 	}
@@ -313,7 +313,7 @@ func (s *Si4713) SetRDSText(str string) error {
 		str = str[n:]
 
 		buf[3] = i
-		_, err := s.sendCommand(buf)
+		_, err := s.i2c.WriteBytes(buf)
 		if err != nil {
 			return err
 		}
@@ -324,6 +324,7 @@ func (s *Si4713) SetRDSText(str string) error {
 		i++
 	}
 
+	time.Sleep(pauseTime)
 	return nil
 }
 

@@ -106,12 +106,12 @@ func TestTransmission(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = tx.SetRDSPS("Test")
+	err = tx.SetRDSPSName("Test")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = tx.SetRDSText("Testing testing testing testing 12345")
+	err = tx.SetRDSRadioText("Testing testing testing testing 12345")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,12 +164,12 @@ func TestPowerUpPowerDown(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = tx.SetRDSPS("Hello")
+		err = tx.SetRDSPSName("Hello")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		err = tx.SetRDSText(fmt.Sprintf("Test #%d", i+1))
+		err = tx.SetRDSRadioText(fmt.Sprintf("Test #%d", i+1))
 		if err != nil {
 			t.Fatal(err)
 		}
