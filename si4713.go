@@ -97,7 +97,7 @@ func (s *Si4713) PowerUp() error {
 		return err
 	}
 
-	time.Sleep(time.Millisecond * 500)
+	time.Sleep(time.Millisecond * 100)
 
 	rev, err := s.getRev()
 	if err != nil {
@@ -132,7 +132,7 @@ func (s *Si4713) SetFrequency(freq uint16) error {
 			return fmt.Errorf("error bit set: invalid argument")
 		}
 
-		time.Sleep(time.Millisecond * 10)
+		time.Sleep(pauseTime)
 	}
 
 	return fmt.Errorf("failed to get response status")
@@ -164,7 +164,7 @@ func (s *Si4713) TuneMeasure(freq uint16) error {
 			break
 		}
 
-		time.Sleep(time.Millisecond * 10)
+		time.Sleep(pauseTime)
 	}
 
 	return nil
@@ -341,19 +341,19 @@ func (s *Si4713) Reset() error {
 	if err != nil {
 		return err
 	}
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(pauseTime)
 
 	err = s.resetLine.SetValue(0)
 	if err != nil {
 		return err
 	}
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(pauseTime)
 
 	err = s.resetLine.SetValue(1)
 	if err != nil {
 		return err
 	}
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(pauseTime)
 	return nil
 }
 
