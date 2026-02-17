@@ -87,12 +87,23 @@ func (s *Si4713) PowerUp() error {
 		return err
 	}
 
-	err = s.setProperty(PropTxACompGain, 10)
+	err = s.setProperty(PropTxACompEnable, 0b11)
 	if err != nil {
 		return err
 	}
-
-	err = s.setProperty(PropTxACompEnable, 0)
+	err = s.setProperty(PropTxACompThreshold, 0xFFF1)
+	if err != nil {
+		return err
+	}
+	err = s.setProperty(PropTxACompAttackTime, 0)
+	if err != nil {
+		return err
+	}
+	err = s.setProperty(PropTxACompReleaseTime, 4)
+	if err != nil {
+		return err
+	}
+	err = s.setProperty(PropTxACompGain, 5)
 	if err != nil {
 		return err
 	}

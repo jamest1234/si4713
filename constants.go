@@ -22,8 +22,11 @@ const (
 	PropTxAudioDeviation     = 0x2101
 	PropTxRDSDeviation       = 0x2103
 	PropTxPreemphasis        = 0x2106
-	PropTxACompGain          = 0x2204
 	PropTxACompEnable        = 0x2200
+	PropTxACompThreshold     = 0x2201
+	PropTxACompAttackTime    = 0x2202
+	PropTxACompReleaseTime   = 0x2203
+	PropTxACompGain          = 0x2204
 	PropTxRDSInterruptSource = 0x2C00
 	PropTxRDSPI              = 0x2C01
 	PropTxRDSPsMix           = 0x2C02
