@@ -36,3 +36,32 @@ const (
 	PropTxRDSPsAF            = 0x2C06
 	PropTxRDSFIFOSize        = 0x2C07
 )
+
+const (
+	DynamicRangeControl = 1 << iota
+	AudioLimiter
+)
+
+type AudioCompressionSettings struct {
+	Enable      uint16
+	Threshold   int     // Range from -40dB to 0dB
+	AttackTime  float64 // Range from 0.5ms to 5ms
+	ReleaseTime int     // 100ms, 200ms, 350ms, 525ms, or 1000ms
+	Gain        uint16  // Range from 0dB to 20dB
+}
+
+var MinimalCompression = AudioCompressionSettings{
+	Enable:      DynamicRangeControl | AudioLimiter,
+	Threshold:   -40,
+	AttackTime:  5,
+	ReleaseTime: 100,
+	Gain:        15,
+}
+
+var AggressiveCompression = AudioCompressionSettings{
+	Enable:      DynamicRangeControl | AudioLimiter,
+	Threshold:   -15,
+	AttackTime:  0.5,
+	ReleaseTime: 1000,
+	Gain:        5,
+}

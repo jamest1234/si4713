@@ -2,6 +2,7 @@ package si4713
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -71,7 +72,14 @@ func (s *Si4713) getRev() (uint8, error) {
 	return response[1], err
 }
 
-func (s *Si4713) PowerUp() error {
+func (s *Si4713) PowerUp(compressionSettingsOption ...AudioCompressionSettings) error {
+	var compressionSettings AudioCompressionSettings
+	if len(compressionSettingsOption) == 0 {
+		compressionSettings = MinimalCompression
+	} else {
+		compressionSettings = compressionSettingsOption[0]
+	}
+
 	_, err := s.sendCommand([]byte{CmdPowerUp, 0x12, 0x50})
 	if err != nil {
 		return err
@@ -87,23 +95,23 @@ func (s *Si4713) PowerUp() error {
 		return err
 	}
 
-	err = s.setProperty(PropTxACompEnable, 0b11)
+	err = s.setProperty(PropTxACompEnable, min(3, compressionSettings.Enable))
 	if err != nil {
 		return err
 	}
-	err = s.setProperty(PropTxACompThreshold, 0xFFF1)
+	err = s.setProperty(PropTxACompThreshold, uint16((1<<16)-min(0, max(-40, compressionSettings.Threshold))))
 	if err != nil {
 		return err
 	}
-	err = s.setProperty(PropTxACompAttackTime, 0)
+	err = s.setProperty(PropTxACompAttackTime, min(9, uint16((compressionSettings.AttackTime*2)-1)))
 	if err != nil {
 		return err
 	}
-	err = s.setProperty(PropTxACompReleaseTime, 4)
+	err = s.setProperty(PropTxACompReleaseTime, min(4, uint16(-1.55134+0.0192994*float64(compressionSettings.ReleaseTime)-0.0000436223*math.Pow(float64(compressionSettings.ReleaseTime), 2)+(6.07131/100000000)*math.Pow(float64(compressionSettings.ReleaseTime), 3)+(-3.08388/100000000000)*math.Pow(float64(compressionSettings.ReleaseTime), 4))))
 	if err != nil {
 		return err
 	}
-	err = s.setProperty(PropTxACompGain, 5)
+	err = s.setProperty(PropTxACompGain, min(20, compressionSettings.Gain))
 	if err != nil {
 		return err
 	}
