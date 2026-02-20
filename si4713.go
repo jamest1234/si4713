@@ -99,7 +99,7 @@ func (s *Si4713) PowerUp(compressionSettingsOption ...AudioCompressionSettings) 
 	if err != nil {
 		return err
 	}
-	err = s.setProperty(PropTxACompThreshold, uint16((1<<16)-min(0, max(-40, compressionSettings.Threshold))))
+	err = s.setProperty(PropTxACompThreshold, uint16((1<<16)+min(0, max(-40, compressionSettings.Threshold))))
 	if err != nil {
 		return err
 	}
